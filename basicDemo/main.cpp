@@ -603,9 +603,7 @@ unsigned int loadTexture(const char* path)
 
 unsigned int loadTextureMatrix(std::vector<float>matrix)
 {
-	std::vector<float>array;
-	array.assign(49,0.5f);
-	array[0] = 0.0f;
+	
 	unsigned int id;
 
 	// Creates the texture on GPU
@@ -624,7 +622,7 @@ unsigned int loadTextureMatrix(std::vector<float>matrix)
 	glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexImage1D(GL_TEXTURE_1D, 0, GL_R32F, 49, 0, GL_RED, GL_FLOAT, &array[0]);
+	glTexImage1D(GL_TEXTURE_1D, 0, GL_R32F, 49, 0, GL_RED, GL_FLOAT, &matrix[0]);
 	glBindTexture(GL_TEXTURE_1D, 0);
 
 	/*else
@@ -672,11 +670,19 @@ unsigned int loadCubemap(std::vector<std::string> faces)
 
 void initTexture() {
 
-	textureID1 = loadTexture("assets/textures/paisaje.png");
+	textureID1 = loadTexture("assets/textures/el-witcher.jpg");
 	textureID = loadTexture("assets/textures/paisaje2.png");
 	std::vector<float> pass;
 	pass.assign(49,0.5f);
+	pass[0] = 0.0f;
 	textMat = loadTextureMatrix(pass);
+	resetKernet();
+	kernel[0] = 1.0f;
+	kernel[1] = 0.5f;
+	kernel[2] = 0.0f;
+	glDeleteTextures(1, &textMat);
+
+	textMat = loadTextureMatrix(kernel);
 
 	textureActual = textureID1;
 	images.push_back(textureID1);
@@ -1051,7 +1057,8 @@ int main(int argc, char const* argv[])
 		glDeleteBuffers(1, &modelsObj[i]->VBO[3]);
 		glDeleteBuffers(1, &modelsObj[i]->VBO[4]);
 	}
-
+	glDeleteBuffers(1, &planeVAO);
+	glDeleteBuffers(1, &planeVBO);
 	// Destroy the shader
 	
 	delete Camara;

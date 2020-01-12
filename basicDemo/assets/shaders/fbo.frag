@@ -8,7 +8,7 @@ void main()
 {	
 	vec3 image = texelFetch(text, ivec2(coordText+vec2(0.5)),0).rgb;
 	//float vect = texture1D(textMat, 1.5/49.0).r*255;
-	float vec = texelFetch(textMat, 1, 0).r;
+	float vec = texelFetch(textMat, 3, 0).r;
 	//vect += 0.3f;
 	vec4 result;
 	float umbral = 0.4f;

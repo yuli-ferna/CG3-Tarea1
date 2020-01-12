@@ -387,6 +387,7 @@ vec3 toon(vec3 image)
 	vec3 result;
 	vec3 edges = roberts(image);
 	result = image;
+	result = result - edges;
 	//toon
 	vec3 stepSize = vec3(10.0);
 	result *= stepSize;
@@ -394,7 +395,6 @@ vec3 toon(vec3 image)
     result = round(result);
     
     result /= stepSize;
-	result = result - edges;
 	return result;
 }
 
