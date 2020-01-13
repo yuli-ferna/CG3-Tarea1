@@ -41,7 +41,7 @@ int modeImgAnt = 0;
 // 1 = Negative
 int nImg = 0;
 std::vector<float> kernel;
-float sigma = 1.4;
+float sigma = 1;
 //Textures
 unsigned int textureID;
 unsigned int textureID1, textureActual, texture, textMat;
@@ -81,14 +81,46 @@ const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
 float LoG(float x, float y, float sigma)
 {
 	float sigma4 = -(1 / (PI * sigma * sigma * sigma * sigma));
-	float sigma2 = -((x * x + y * y) / (2 * sigma * sigma));
-	float expon = exp(sigma2);
+	float sigma2 = ((x * x + y * y) / (2 * sigma * sigma));
+	float expon = exp(-sigma2);
 	return sigma4 * (1 - sigma2) * expon;
 }
 void resetKernet()
 {
 	kernel.clear();
 	kernel.assign(49, 0.0f);
+}
+
+unsigned int loadTextureMatrix(std::vector<float>matrix)
+{
+
+	unsigned int id;
+
+	// Creates the texture on GPU
+	glGenTextures(1, &id);
+	// Gets the texture channel format
+
+	// Binds the texture
+	glBindTexture(GL_TEXTURE_1D, id);
+	// Creates the texture
+
+
+	// Set the filtering parameters
+	glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexImage1D(GL_TEXTURE_1D, 0, GL_R32F, 49, 0, GL_RED, GL_FLOAT, matrix.data());
+	glBindTexture(GL_TEXTURE_1D, 0);
+
+	/*else
+	{
+		std::cout << "ERROR:: Unable to load texture " << path << std::endl;
+		glDeleteTextures(1, &id);
+	}*/
+	// We dont need the data texture anymore because is loaded on the GPU
+
+	return id;
 }
 void LoGKernel(float x, float y, float sigma)
 {
@@ -113,14 +145,84 @@ void LoGKernel(float x, float y, float sigma)
 		for (int j = maxY; j >= minY; j--)
 		{
 			kernel[k] = LoG(i, j, sigma);
-			cout << kernel[k] << ' ';
+			//cout << kernel[k] << ' ';
 		
 			k++;
 		}
 	}
-	cout << endl;
-}	
+	//cout << endl;
+}
 
+void kernelCalc()
+{
+	glm::vec2 k = Interface->kernel;
+	if (modeImg != modeImgAnt)
+	{
+		modeImgAnt = modeImg;
+		switch (modeImg) {
+		case 1:
+
+
+			modeImgAnt = modeImg;
+
+			break;
+		case 0:
+
+
+			modeImgAnt = modeImg;
+			break;
+		case 2:
+
+
+			modeImgAnt = modeImg;
+			break;
+		case 3:
+
+
+			modeImgAnt = modeImg;
+
+			break;
+		case 4:
+
+			//sobelKernel(k.x, k.y);
+
+			modeImgAnt = modeImg;
+			break;
+		case 5:
+
+			//prewittKernel(k.x, k.y);
+
+			modeImgAnt = modeImg;
+			break;
+		case 6:
+
+			//robertsKernel(k.x, k.y);
+
+			modeImgAnt = modeImg;
+			break;
+		case 7:
+
+			//promKernel(k.x, k.y);
+
+			modeImgAnt = modeImg;
+			break;
+		case 8:
+
+			//medianaKernel(k.x, k.y);
+
+			modeImgAnt = modeImg;
+			break;
+		case 9:
+
+			LoGKernel(k.x, k.y, sigma);
+
+			modeImgAnt = modeImg;
+			break;
+		}
+		glDeleteTextures(1, &textMat);
+		textMat = loadTextureMatrix(kernel);
+	}
+}
 
 /* *
  * Handles the window resize
@@ -239,7 +341,8 @@ void onKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods)
 			break;
 		case GLFW_KEY_9:
 			modeImg = 9;
-			LoGKernel(k.x, k.y, sigma);
+			//LoGKernel(k.x, k.y, sigma);
+			kernelCalc();
 			Interface->setFilter(9);
 			modeImgAnt = modeImg;
 			break;
@@ -609,38 +712,6 @@ unsigned int loadTexture(const char* path)
 	return id;
 }
 
-unsigned int loadTextureMatrix(std::vector<float>matrix)
-{
-	
-	unsigned int id;
-
-	// Creates the texture on GPU
-	glGenTextures(1, &id);
-	// Gets the texture channel format
-	
-	// Binds the texture
-	glBindTexture(GL_TEXTURE_1D, id);
-	// Creates the texture
-
-	
-	// Set the filtering parameters
-	glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexImage1D(GL_TEXTURE_1D, 0, GL_R32F, 49, 0, GL_RED, GL_FLOAT, matrix.data());
-	glBindTexture(GL_TEXTURE_1D, 0);
-
-	/*else
-	{
-		std::cout << "ERROR:: Unable to load texture " << path << std::endl;
-		glDeleteTextures(1, &id);
-	}*/
-	// We dont need the data texture anymore because is loaded on the GPU
-	
-	return id;
-}
-
 unsigned int loadCubemap(std::vector<std::string> faces)
 {
 	unsigned int textureID;
@@ -815,76 +886,6 @@ void updateMVP(int i, glm::vec3 pos)
 	View = Camara->getView();
 	//Proj = glm::perspective(45.0f, (float)windowHeight / (float)windowWidth, 0.1f, 100.0f);
 }
-void kernelCalc()
-{
-	glm::vec2 k = Interface->kernel;
-	if (modeImg != modeImgAnt)
-	{
-		modeImgAnt = modeImg;
-		switch (modeImg) {
-		case 1:
-			
-	
-			modeImgAnt = modeImg;
-
-			break;
-		case 0:
-			
-	
-			modeImgAnt = modeImg;
-			break;
-		case 2:
-			
-	
-			modeImgAnt = modeImg;
-			break;
-		case 3:
-			
-	
-			modeImgAnt = modeImg;
-
-			break;
-		case 4:
-			
-			//sobelKernel(k.x, k.y);
-	
-			modeImgAnt = modeImg;
-			break;
-		case 5:
-			
-			//prewittKernel(k.x, k.y);
-	
-			modeImgAnt = modeImg;
-			break;
-		case 6:
-			
-			//robertsKernel(k.x, k.y);
-	
-			modeImgAnt = modeImg;
-			break;
-		case 7:
-			
-			//promKernel(k.x, k.y);
-	
-			modeImgAnt = modeImg;
-			break;
-		case 8:
-			
-			//medianaKernel(k.x, k.y);
-	
-			modeImgAnt = modeImg;
-			break;
-		case 9:
-			
-			LoGKernel(k.x, k.y, sigma);
-	
-			modeImgAnt = modeImg;
-			break;
-		}
-		glDeleteTextures(1,&textMat);
-		textMat = loadTextureMatrix(kernel);
-	}
-}
 
 void renderPlane(Shader* shaderActual)
 {
@@ -900,9 +901,9 @@ void renderPlane(Shader* shaderActual)
 	//kernel calculate
 	
 	kernelCalc();
-	/*glDeleteTextures(1, &textMat);
+	glDeleteTextures(1, &textMat);
 	textMat = loadTextureMatrix(kernel);
-*/
+
 	shaderActual->setInt("textMat", 1);
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_1D, textMat);

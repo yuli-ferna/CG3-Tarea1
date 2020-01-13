@@ -85,12 +85,12 @@ vec3 promedio(vec3 image)
 	int right =  int (kernel.x) % 2 == 0 ? middleS - 1 : middleS;
 
 	vec3 sum = vec3(0.0, 0.0, 0.0);
-	for(int ii=0; ii < kernel.y; ii++)
+	for(int ii=0; ii < kernel.x; ii++)
 	{
 		texel = texel + (heightStep * (top - ii));
 		texel = texel - (widthStep * left);
 		
-		for(int jj=0; jj < kernel.x; jj++)
+		for(int jj=0; jj < kernel.y; jj++)
 		{
 			vec3 textureAct = texture(text, texel).rgb;
 			sum = sum + textureAct;
@@ -188,12 +188,12 @@ vec3 mediana(vec3 image)
 	vec3 sum = vec3(0.0, 0.0, 0.0);
 	int pos = 0;
 	//Pasar colores del kernel a un arreglo
-	for(int ii=0; ii < kernel.y; ii++)
+	for(int ii=0; ii < kernel.x; ii++)
 	{
 		texel = texel + (heightStep * (top - ii));
 		texel = texel - (widthStep * left);
 		
-		for(int jj=0; jj < kernel.x; jj++)
+		for(int jj=0; jj < kernel.y; jj++)
 		{
 			vec3 textureAct = texture(text, texel).rgb;
 
@@ -421,25 +421,26 @@ vec3 LoG(vec3 image){
 
 	vec3 sum = vec3(0.0, 0.0, 0.0);
 	int kk = 0;
-	for(int ii=0; ii < kernel.y; ii++)
+	for(int ii=0; ii < kernel.x; ii++)
 	{
 		texel = texel + (heightStep * (top - ii));
 		texel = texel - (widthStep * left);
 		
-		for(int jj=0; jj < kernel.x; jj++)
+		for(int jj=0; jj < kernel.y; jj++)
 		{
 			vec3 textureAct = texture(text, texel).rgb;
 			float LoGValue = texelFetch(textMat, kk, 0).r;
-			sum = sum + textureAct * abs(LoGValue);
+			sum = sum + textureAct * (LoGValue);
 			texel = texel + widthStep; kk++;
 		}
 		texel = coordText;
 	}
 
 	result = vec3(sum);
-	
+	//result =image - result;
 	return result;
 }
+
 void main()
 {
 	
