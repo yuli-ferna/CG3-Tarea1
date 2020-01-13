@@ -401,9 +401,43 @@ vec3 toon(vec3 image)
 vec3 LoG(vec3 image){
 
 	vec3 result;
-	float vect = texture1D(textMat, 0).r;
-	// floata = texelFetch
-	result = vec3(vect+0.5);
+	ivec2 ires = textureSize( text, 0 );
+	float ResS = float( ires.s );
+    float ResT = float( ires.t );
+	int middleT = int(kernel.x)/2; 
+	int middleS = int(kernel.y)/2;
+	
+	//Se tomar� como pivote el kernel.x/2 y el kernel.y/2
+	//vec2(x,y)
+    vec2 widthStep = vec2((1./ResS), 0. );
+	vec2 heightStep = vec2(0. , (1./ResT));
+	
+	vec2 texel = coordText;
+	//Maximos
+	int top = middleT;
+	int bottom = int (kernel.y) % 2 == 0 ? middleT - 1 : middleT;
+	int left = middleS;
+	int right =  int (kernel.x) % 2 == 0 ? middleS - 1 : middleS;
+
+	vec3 sum = vec3(0.0, 0.0, 0.0);
+	int kk = 0;
+	for(int ii=0; ii < kernel.y; ii++)
+	{
+		texel = texel + (heightStep * (top - ii));
+		texel = texel - (widthStep * left);
+		
+		for(int jj=0; jj < kernel.x; jj++)
+		{
+			vec3 textureAct = texture(text, texel).rgb;
+			float LoGValue = texelFetch(textMat, kk, 0).r;
+			sum = sum + textureAct * abs(LoGValue);
+			texel = texel + widthStep; kk++;
+		}
+		texel = coordText;
+	}
+
+	result = vec3(sum);
+	
 	return result;
 }
 void main()
@@ -430,6 +464,7 @@ void main()
 	{
 		//normal
 		result =vec4(image, 1.0f);
+		
 	}else if(mode == 1)
 	{
 		//negative

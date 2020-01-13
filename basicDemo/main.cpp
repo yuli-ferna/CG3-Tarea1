@@ -94,13 +94,23 @@ void LoGKernel(float x, float y, float sigma)
 {
 	//init
 	resetKernet();
-	cout << kernel[0] << ' ';
+	int minX, maxX;
+	int minY, maxY;
+	int mayor = x < y ? y : x;
+
+	minX = (-x / 2);
+	minX =minX + (int(x) % 2 == 0 ? 1 : 0);
+	maxX = (x / 2);
+
+	minY = (-y / 2);
+	minY = minY + (int(y) % 2 == 0 ? 1 : 0);
+	maxY = (y / 2);
 
 	//calculate
 	int k = 0;
-	for (size_t i = 0; i < x; i++)
+	for (int i = maxX; i >= minX; i--)
 	{
-		for (size_t j = 0; j < y; j++)
+		for (int j = maxY; j >= minY; j--)
 		{
 			kernel[k] = LoG(i, j, sigma);
 			cout << kernel[k] << ' ';
@@ -108,10 +118,8 @@ void LoGKernel(float x, float y, float sigma)
 			k++;
 		}
 	}
-	cout << kernel[9] << ' ';
-
 	cout << endl;
-}
+}	
 
 
 /* *
@@ -608,8 +616,6 @@ unsigned int loadTextureMatrix(std::vector<float>matrix)
 
 	// Creates the texture on GPU
 	glGenTextures(1, &id);
-	// Loads the texture
-	int textureWidth, textureHeight, numberOfChannels;
 	// Gets the texture channel format
 	
 	// Binds the texture
@@ -622,7 +628,7 @@ unsigned int loadTextureMatrix(std::vector<float>matrix)
 	glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexImage1D(GL_TEXTURE_1D, 0, GL_R32F, 49, 0, GL_RED, GL_FLOAT, &matrix[0]);
+	glTexImage1D(GL_TEXTURE_1D, 0, GL_R32F, 49, 0, GL_RED, GL_FLOAT, matrix.data());
 	glBindTexture(GL_TEXTURE_1D, 0);
 
 	/*else
@@ -673,13 +679,14 @@ void initTexture() {
 	textureID1 = loadTexture("assets/textures/el-witcher.jpg");
 	textureID = loadTexture("assets/textures/paisaje2.png");
 	std::vector<float> pass;
-	pass.assign(49,0.5f);
+	pass.assign(49, 0.5f);
 	pass[0] = 0.0f;
 	textMat = loadTextureMatrix(pass);
 	resetKernet();
 	kernel[0] = 1.0f;
 	kernel[1] = 0.5f;
 	kernel[2] = 0.0f;
+	kernel[40] = 1.0f;
 	glDeleteTextures(1, &textMat);
 
 	textMat = loadTextureMatrix(kernel);
@@ -874,8 +881,8 @@ void kernelCalc()
 			modeImgAnt = modeImg;
 			break;
 		}
-		//glDeleteTextures(1,&textMat);
-		//textMat = loadTextureMatrix(kernel);
+		glDeleteTextures(1,&textMat);
+		textMat = loadTextureMatrix(kernel);
 	}
 }
 
@@ -891,13 +898,15 @@ void renderPlane(Shader* shaderActual)
 	glBindTexture(GL_TEXTURE_2D, textureActual);
 	shaderActual->setInt("text", 0);
 	//kernel calculate
+	
 	kernelCalc();
-	if (modeImg > 3 && modeImg < 11)
-	{
-		shaderActual->setInt("textMat", 1);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_1D, textMat);
-	}
+	/*glDeleteTextures(1, &textMat);
+	textMat = loadTextureMatrix(kernel);
+*/
+	shaderActual->setInt("textMat", 1);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_1D, textMat);
+	
 
 	shaderActual->setInt("mode", modeImg);
 	shaderActual->setVec2("kernel", dataTweak.kernel);
